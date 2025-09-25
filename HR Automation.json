@@ -1,0 +1,931 @@
+{
+  "name": "HR Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "trigger": [
+          "message"
+        ],
+        "channelId": {
+          "__rl": true,
+          "value": "C09EKG3N2UT",
+          "mode": "list",
+          "cachedResultName": "accounting-bot"
+        },
+        "options": {
+          "userIds": [
+            "U09F700UBLJ"
+          ]
+        }
+      },
+      "name": "Slack Trigger",
+      "type": "n8n-nodes-base.slackTrigger",
+      "position": [
+        448,
+        656
+      ],
+      "typeVersion": 1,
+      "id": "11c1c109-cd36-4ca3-81d0-fb0b3df7fb68",
+      "webhookId": "459c3568-cd58-4655-9fd4-568c4ed66d67",
+      "credentials": {
+        "slackApi": {
+          "id": "8QBPWLHxywESBlQF",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5184cf68-39b1-4f24-8569-2e8641d8d7bd",
+              "name": "chatInput",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "d43f3e5b-c8d0-46e6-8b56-c7b94e26e211",
+              "name": "user",
+              "value": "={{ $json.user }}",
+              "type": "string"
+            },
+            {
+              "id": "channel-id",
+              "name": "channel",
+              "value": "={{ $json.channel }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Extract Message Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        656
+      ],
+      "id": "c3950565-23b2-4500-bd11-6733b53d9583"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.chatInput }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "intent",
+              "description": "Determine the user's intent from this list only: candidate_search, info_query",
+              "required": true
+            },
+            {
+              "name": "search_query",
+              "description": "={{ $json.chatInput }}",
+              "required": true
+            },
+            {
+              "name": "skills_required",
+              "description": "Extract only the skills explicitly mentioned in the text",
+              "required": true
+            },
+            {
+              "name": "experience_level",
+              "description": "Extract experience requirements only if mentioned, otherwise null",
+              "required": true
+            },
+            {
+              "name": "salary",
+              "description": "Extract salary criteria only if mentioned, otherwise null",
+              "required": true
+            },
+            {
+              "name": "user",
+              "description": "={{ $json.user }}",
+              "required": true
+            },
+            {
+              "name": "notice_period",
+              "description": "Extract notice period only if mentioned, otherwise null",
+              "required": true
+            },
+            {
+              "name": "location",
+              "description": "Extract location only if mentioned, otherwise null",
+              "required": true
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "You are an expert extraction algorithm. \n\nStrictly extract only the information explicitly mentioned in the input text. \nDo NOT hallucinate or add any extra skills, experience, locations, or details. \nIf a field is not mentioned in the input, return null.\n\n- For \"skills_required\", include only skills that appear in the text.\n- For \"experience_level\", include only if specified (otherwise null).\n- For \"salary\", include only if specified (otherwise null).\n- For \"notice_period\", include only if specified (otherwise null).\n- For \"location\", include only if specified (otherwise null).\n\nOutput the result strictly in JSON format matching the attribute names.\n"
+        }
+      },
+      "name": "Information Extractor",
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        976,
+        656
+      ],
+      "id": "d6a64efd-017a-4c21-8c42-8bb38db6fcf1"
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.output.intent }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "candidate_search",
+              "description": "User wants to search for candidates, find developers, or query the candidate database"
+            },
+            {
+              "category": "info_query",
+              "description": "User is saying hi, hello, asking general questions, or not providing specific candidate search criteria"
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "You are an intent classifier for HR recruitment chat inputs.\n\nClassify the given text into one of exactly two categories:\n\n1. candidate_search — when the user wants to search for candidates, find developers, or query the database (e.g., \"find React developers\", \"show me senior Python engineers\")\n2. info_query — when the user says hi/hello, asks general questions, or provides insufficient search information\n\nRules:\n- Always choose one of the two categories\n- If unclear, default to info_query\n- Output only the category label"
+        }
+      },
+      "name": "Intent Classifier",
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        656
+      ],
+      "id": "357924f3-438a-428d-83a2-3ddfea0b74ce"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1r-cNm8sPYG_l1OWblYGVlRaLj2fZGX_fCMzMKvMhDGM",
+          "mode": "list",
+          "cachedResultName": "n8n Demo Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1r-cNm8sPYG_l1OWblYGVlRaLj2fZGX_fCMzMKvMhDGM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1513402359,
+          "mode": "list",
+          "cachedResultName": "HR Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1r-cNm8sPYG_l1OWblYGVlRaLj2fZGX_fCMzMKvMhDGM/edit#gid=1513402359"
+        },
+        "options": {}
+      },
+      "name": "Read Candidates from Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1760,
+        384
+      ],
+      "id": "489a62b1-a7b0-4cf6-9ff8-290df3e8073c",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kld9ZE7yAGxfX4iA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Chat Input: {{ $('Extract Message Data').first().json.chatInput }}\n\n\nCandidate Data: {{ JSON.stringify($json.candidates, null, 2) }}\n\nFilter and return matching candidates in the required dual format.\n",
+        "options": {
+          "systemMessage": "You are a helpful HR recruitment assistant. Find candidates that match the search criteria using common sense recruiting logic.\n\n## SALARY MATCHING - BE PRACTICAL:\n- \"Under 200K\" or \"less than 200K\" = include anyone who MIGHT accept 200K or less\n- Include salary ranges where the LOWEST number is acceptable (e.g., \"180K-220K\" for budget 200K)\n- Always include \"TBD\", \"Negotiable\", \"To be discussed\" - these are flexible\n- When in doubt about salary, include the candidate and mention it\n\n## EXPERIENCE MATCHING:\n- \"2+ years\" = 2 years or more\n- \"Above 2 years\" = more than 2 years (so 2.5, 3, 4, etc.)\n- Count all relevant experience, including similar roles\n\n## RESPONSE STYLE:\n- Be friendly and conversational, not robotic\n- Lead with good news about matches found\n- Keep explanations brief and human-like\n- Focus on what candidates CAN do, not why they don't match perfectly\n\n## RESPONSE FORMAT:\n```json\n{\n  \"chatResponse\": \"Found X candidates matching your criteria! [Brief, friendly summary with candidate highlights]\",\n  \"candidateData\": [exact candidate records],\n  \"metadata\": {\n    \"totalMatches\": number,\n    \"totalCandidates\": number,\n    \"searchQuery\": \"original query\"\n  }\n}\n```\n\n## EXAMPLE GOOD RESPONSE STYLE:\n\"Found 4 candidates with 2+ years experience under 200K budget:\n• **Nouman Latif** - 2+ years MERN, 100K-120K salary\n• **M Talal Farukh** - 2.5 years blockchain, starting at 195K  \n• **Usman** - 2+ years Node.js, willing to start at 180K\n• **Abdur Rehman** - 3+ years backend, salary negotiable\n\nAll have strong technical skills and are within your experience and budget range!\"\n\n## KEY RULES:\n1. Be inclusive - when uncertain, include the candidate\n2. Use recruiter logic, not strict computer logic  \n3. Sound human and helpful, not robotic\n4. Focus on matches found, not exclusions made\n5. Return exact candidate data without changes"
+        }
+      },
+      "name": "AI Summary Generator",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        2080,
+        384
+      ],
+      "id": "1b773146-29a3-4819-9a8f-0ec31a94ebd7"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "final-response",
+              "name": "Output",
+              "type": "string",
+              "value": "={{ $input.all().find(item => item.json.type === 'chat').json.finalMessage }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Format Final Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2544,
+        496
+      ],
+      "id": "315d7778-0f81-4906-b8a2-0109c7b4aea1",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09EKG3N2UT",
+          "mode": "list",
+          "cachedResultName": "accounting-bot"
+        },
+        "text": "={{ $json.Output }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2720,
+        496
+      ],
+      "id": "e62a11d2-9042-4451-88c1-0b5455a3810e",
+      "name": "Send Search Results",
+      "webhookId": "97787adf-ae13-444a-9af4-ca4a73a47572",
+      "credentials": {
+        "slackApi": {
+          "id": "8QBPWLHxywESBlQF",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=HR QUERY: \n\n{{ $('Extract Message Data').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "You are a helpful HR recruitment assistant. You help HR teams search for candidates, find developers, and query the candidate database. Respond to greetings and general queries in a friendly, professional manner."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1744,
+        848
+      ],
+      "id": "db53a655-79e6-4521-8ff8-b3c1825bf5b6",
+      "name": "AI Greeting Agent"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09EKG3N2UT",
+          "mode": "list",
+          "cachedResultName": "accounting-bot"
+        },
+        "text": "={{ $json.output }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2048,
+        848
+      ],
+      "id": "ac1091ea-6ca9-41b2-94b2-3894558a19b6",
+      "name": "Send Greeting Response",
+      "webhookId": "97787adf-ae13-444a-9af4-ca4a73a47572",
+      "credentials": {
+        "slackApi": {
+          "id": "8QBPWLHxywESBlQF",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        992,
+        880
+      ],
+      "id": "e3eb0ebd-f1f4-4c54-9530-646f292aa158",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "jVirg6ZJ3EgHWb0H",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        816
+      ],
+      "id": "90dc6b45-6371-49b4-b5b2-9f0edbd2e1ab",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "jVirg6ZJ3EgHWb0H",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        576
+      ],
+      "id": "4beba5be-e0f6-44ca-99c0-ebbc71f4c362",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "jVirg6ZJ3EgHWb0H",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1696,
+        1056
+      ],
+      "id": "10dce5f0-fc2a-4574-96ac-fee6a9273da1",
+      "name": "Groq Chat Model3",
+      "credentials": {
+        "groqApi": {
+          "id": "jVirg6ZJ3EgHWb0H",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Slack Trigger').item.json.client_msg_id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1840,
+        1056
+      ],
+      "id": "cf92bc94-0130-47eb-b75c-7ce5a300b7b4",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Simple node to consolidate all candidate rows into one variable\n// Place this BEFORE the AI Agent node\n\nconsole.log('=== CONSOLIDATING CANDIDATE DATA ===');\n\n// Get all candidate items from Google Sheets\nconst allCandidates = $input.all().map(item => item.json);\n\nconsole.log(`Consolidating ${allCandidates.length} candidates`);\n\n// Return as single item with all candidates in one array\nreturn [{\n  json: {\n    candidates: allCandidates,\n    totalCount: allCandidates.length,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        384
+      ],
+      "id": "8f4120db-b0d4-4a9a-ac5b-a581045d206b",
+      "name": "Prepare Data for AI Agent"
+    },
+    {
+      "parameters": {
+        "operation": "clear",
+        "documentId": {
+          "__rl": true,
+          "value": "1r-cNm8sPYG_l1OWblYGVlRaLj2fZGX_fCMzMKvMhDGM",
+          "mode": "list",
+          "cachedResultName": "n8n Demo Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1r-cNm8sPYG_l1OWblYGVlRaLj2fZGX_fCMzMKvMhDGM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 657952160,
+          "mode": "list",
+          "cachedResultName": "HR Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1r-cNm8sPYG_l1OWblYGVlRaLj2fZGX_fCMzMKvMhDGM/edit#gid=657952160"
+        },
+        "keepFirstRow": true
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2736,
+        240
+      ],
+      "id": "30007a15-285b-49b7-b3a0-0afd390e6bd6",
+      "name": "Clear Report Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kld9ZE7yAGxfX4iA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1r-cNm8sPYG_l1OWblYGVlRaLj2fZGX_fCMzMKvMhDGM",
+          "mode": "list",
+          "cachedResultName": "n8n Demo Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1r-cNm8sPYG_l1OWblYGVlRaLj2fZGX_fCMzMKvMhDGM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 657952160,
+          "mode": "list",
+          "cachedResultName": "HR Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1r-cNm8sPYG_l1OWblYGVlRaLj2fZGX_fCMzMKvMhDGM/edit#gid=657952160"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Candidate Name": "={{ $json[\"Candidate Name\"] }}",
+            "Experience": "={{ $json.Experience }}",
+            "Skills": "={{ $json.Skills }}",
+            "Notice Period": "={{ $json[\"Notice Period\"] }}",
+            "Location": "={{ $json.Location }}",
+            "CV Link": "={{ $json[\"CV Link\"] }}",
+            "HR Remarks": "={{ $json[\"HR Remarks\"] }}",
+            "Interview Status": "={{ $json[\"Interview Status\"] }}",
+            "Projects": "={{ $json.Projects }}",
+            "Supervisor Remarks": "={{ $json[\"Supervisor Remarks\"] }}",
+            "Current Salary": "={{ $json[\"Current Salary\"] }}",
+            "Expected Salary": "={{ $json[\"Expected Salary\"] }}",
+            "Interview Round 1": "={{ $json[\"Interview Round 1\"] }}",
+            "Interview Round 2": "={{ $json[\"Interview Round 2\"] }}",
+            "Final Status": "={{ $json[\"Final Status\"] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Candidate Name",
+              "displayName": "Candidate Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Experience",
+              "displayName": "Experience",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Skills",
+              "displayName": "Skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Current Salary",
+              "displayName": "Current Salary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Expected Salary",
+              "displayName": "Expected Salary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Notice Period",
+              "displayName": "Notice Period",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CV Link",
+              "displayName": "CV Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "HR Remarks",
+              "displayName": "HR Remarks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Supervisor Remarks",
+              "displayName": "Supervisor Remarks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Projects",
+              "displayName": "Projects",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Interview Status",
+              "displayName": "Interview Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Interview Round 1",
+              "displayName": "Interview Round 1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Interview Round 2",
+              "displayName": "Interview Round 2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Final Status",
+              "displayName": "Final Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2928,
+        240
+      ],
+      "id": "508a4c1e-c6d2-44be-a499-262d68f9494b",
+      "name": "Write Report to Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kld9ZE7yAGxfX4iA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse AI Agent output and prepare for dual destinations\n// Place this AFTER the AI Agent node\n\nconsole.log('=== PARSING AI AGENT OUTPUT ===');\n\nlet aiOutput = $input.first().json.output;\n\n// Clean up common markdown/code block wrappers\nif (typeof aiOutput === 'string') {\n  aiOutput = aiOutput.trim();\n  aiOutput = aiOutput.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();\n}\n\nlet parsedResult;\ntry {\n  // Parse the JSON string from AI\n  parsedResult = JSON.parse(aiOutput);\n  console.log('✅ Successfully parsed AI response');\n  console.log('Chat response length:', parsedResult.chatResponse?.length);\n  console.log('Candidate data count:', parsedResult.candidateData?.length);\n} catch (error) {\n  console.error('❌ Failed to parse AI output:', error, aiOutput);\n\n  // Return error responses\n  return [\n    {\n      json: {\n        type: 'chat',\n        finalMessage: '❌ Error: Could not process search results. Please try again.',\n        hasError: true\n      }\n    },\n    {\n      json: {\n        type: 'excel',\n        candidates: [],\n        hasError: true\n      }\n    }\n  ];\n}\n\n// Extract chat response for Slack\nconst chatResponse = parsedResult.chatResponse || 'Search completed';\n\n// Extract candidate data for Google Sheets\nconst candidateData = parsedResult.candidateData || [];\n\n// Return two separate outputs\nreturn [\n  {\n    json: {\n      type: 'chat',\n      finalMessage: `${chatResponse}\\n\\n📊 **View detailed report:** https://docs.google.com/spreadsheets/d/1r-cNm8sPYG_l1OWblYGVlRaLj2fZGX_fCMzMKvMhDGM/edit#gid=657952160`,\n      metadata: parsedResult.metadata,\n      hasError: false\n    }\n  },\n  {\n    json: {\n      type: 'excel',\n      candidates: candidateData,\n      metadata: parsedResult.metadata,\n      hasError: false\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2368,
+        384
+      ],
+      "id": "b64adb2b-6fb0-40d4-98a3-52d67d3933ee",
+      "name": "Agent Data Parsing"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Transform candidates array into individual items for Google Sheets\nconst excelData = $input.all().find(item => item.json.type === 'excel');\nconst candidates = excelData.json.candidates || [];\n\nconsole.log(`Transforming ${candidates.length} candidates for Google Sheets`);\n\n// Return each candidate as a separate item\nreturn candidates.map(candidate => ({\n  json: candidate\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2544,
+        240
+      ],
+      "id": "08c24891-b225-4b12-b4c2-3030e26f94ac",
+      "name": "Transform"
+    }
+  ],
+  "pinData": {
+    "Slack Trigger": [
+      {
+        "json": {
+          "user": "U09D8EG29CG",
+          "type": "message",
+          "ts": "1758610899.969729",
+          "client_msg_id": "d2a1a012-b284-427c-b6b3-23bc7f8e31cb",
+          "text": "Candidate have skills of Node js and salary is 50K",
+          "team": "T09D8EG288G",
+          "blocks": [
+            {
+              "type": "rich_text",
+              "block_id": "6uoaW",
+              "elements": [
+                {
+                  "type": "rich_text_section",
+                  "elements": [
+                    {
+                      "type": "text",
+                      "text": "Candidate have skills of Node js and salary is 50K"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "channel": "C09EKG3N2UT",
+          "event_ts": "1758610899.969729",
+          "channel_type": "channel"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Slack Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Message Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message Data": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Intent Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intent Classifier": {
+      "main": [
+        [
+          {
+            "node": "Read Candidates from Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Greeting Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Candidates from Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Prepare Data for AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Summary Generator": {
+      "main": [
+        [
+          {
+            "node": "Agent Data Parsing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Final Response": {
+      "main": [
+        [
+          {
+            "node": "Send Search Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Greeting Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Greeting Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Intent Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Summary Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Greeting Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Greeting Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Data for AI Agent": {
+      "main": [
+        [
+          {
+            "node": "AI Summary Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear Report Sheet": {
+      "main": [
+        [
+          {
+            "node": "Write Report to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Data Parsing": {
+      "main": [
+        [
+          {
+            "node": "Format Final Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Transform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform": {
+      "main": [
+        [
+          {
+            "node": "Clear Report Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bd0eaccc-c778-4dc9-a886-ccc70b9c7dc7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a7ba00f5efa8538e8152d9b4100dee19331f8441cc4013b21e0ea0c4bfa4a6c5"
+  },
+  "id": "zMZPfFPuqEq3mAiw",
+  "tags": []
+}
